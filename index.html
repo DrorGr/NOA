@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arduino Hanukkah Menorah Project</title>
+    <style>
+        :root {
+            --color-background: #fcfcf9;
+            --color-surface: #fffffd;
+            --color-text: #134252;
+            --color-text-secondary: #626c71;
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-card-border: rgba(94, 82, 64, 0.12);
+            --color-warning: rgba(168, 75, 47, 0.15);
+            --color-code-bg: rgba(94, 82, 64, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #1f2121;
+                --color-surface: #262828;
+                --color-text: #f5f5f5;
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-primary: #32b8c6;
+                --color-primary-hover: #2da6b2;
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-card-border: rgba(119, 124, 124, 0.2);
+                --color-warning: rgba(230, 129, 97, 0.15);
+                --color-code-bg: rgba(119, 124, 124, 0.15);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--color-text);
+        }
+
+        .subtitle {
+            color: var(--color-text-secondary);
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--color-border);
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab:hover {
+            color: var(--color-text);
+            background: var(--color-code-bg);
+        }
+
+        .tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-card-border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            color: var(--color-text);
+        }
+
+        .card h3 {
+            font-size: 1.2rem;
+            margin: 20px 0 12px;
+            color: var(--color-text);
+        }
+
+        .parts-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .part-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--color-code-bg);
+            border-radius: 8px;
+        }
+
+        .part-qty {
+            background: var(--color-primary);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .part-name {
+            font-weight: 500;
+        }
+
+        .wiring-diagram {
+            background: var(--color-code-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .pin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .pin-table th,
+        .pin-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        .pin-table th {
+            background: var(--color-code-bg);
+            font-weight: 600;
+        }
+
+        .pin-table tr:hover {
+            background: var(--color-code-bg);
+        }
+
+        .code-block {
+            background: var(--color-code-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .code-block pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 6px 12px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .warning-box {
+            background: var(--color-warning);
+            border-left: 4px solid #a84b2f;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--color-primary);
+            color: white;
+            border-radius: 50%;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+
+        .step-title {
+            display: flex;
+            align-items: center;
+            margin: 24px 0 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        ul, ol {
+            margin: 12px 0 12px 24px;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .menorah-visual {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 12px;
+            padding: 40px 20px;
+            background: var(--color-code-bg);
+            border-radius: 12px;
+            margin: 20px 0;
+        }
+
+        .candle {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .flame {
+            width: 20px;
+            height: 30px;
+            background: #ffd700;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        .flame.lit {
+            opacity: 1;
+            animation: flicker 1.5s infinite;
+        }
+
+        @keyframes flicker {
+            0%, 100% { transform: scaleY(1) translateY(0); }
+            50% { transform: scaleY(1.1) translateY(-2px); }
+        }
+
+        .stick {
+            width: 8px;
+            height: 80px;
+            background: var(--color-primary);
+            border-radius: 4px;
+        }
+
+        .shamash .stick {
+            height: 100px;
+        }
+
+        .control-panel {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--color-code-bg);
+            color: var(--color-text);
+        }
+
+        .btn-secondary:hover {
+            background: var(--color-border);
+        }
+
+        @media (max-width: 768px) {
+            .menorah-visual {
+                gap: 8px;
+                padding: 30px 10px;
+            }
+            
+            .stick {
+                height: 60px;
+            }
+            
+            .shamash .stick {
+                height: 80px;
+            }
+        }
+
+        .language-picker {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+
+        .language-picker label {
+            margin-right: 8px;
+            font-weight: 500;
+        }
+
+        .language-picker select {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text);
+            cursor: pointer;
+        }
+
+        [dir="rtl"] {
+            direction: rtl;
+        }
+
+        [dir="rtl"] .language-picker {
+            right: auto;
+            left: 20px;
+        }
+
+        [dir="rtl"] .language-picker label {
+            margin-right: 0;
+            margin-left: 8px;
+        }
+
+        [dir="rtl"] .step-number {
+            margin-right: 0;
+            margin-left: 12px;
+        }
+
+        [dir="rtl"] ul, [dir="rtl"] ol {
+            margin: 12px 24px 12px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="language-picker">
+        <label for="langSelect" data-en="Language:" data-he="שפה:">Language:</label>
+        <select id="langSelect" onchange="switchLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="he">עברית</option>
+        </select>
+    </div>
+
+    <div class="container">
+        <h1 data-en="🕎 Arduino Hanukkah Menorah Project" data-he="🕎 פרויקט מנורת חנוכה בארדואינו">🕎 Arduino Hanukkah Menorah Project</h1>
+        <p class="subtitle" data-en="Build an interactive LED menorah that lights one more candle with each button press" data-he="בנה מנורת לד אינטראקטיבית שמדליקה נר נוסף בכל לחיצה">Build an interactive LED menorah that lights one more candle with each button press</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('overview')" data-en="Overview" data-he="סקירה">Overview</button>
+            <button class="tab" onclick="showTab('parts')" data-en="Parts List" data-he="רשימת רכיבים">Parts List</button>
+            <button class="tab" onclick="showTab('wiring')" data-en="Wiring" data-he="חיבור">Wiring</button>
+            <button class="tab" onclick="showTab('code')" data-en="Arduino Code" data-he="קוד ארדואינו">Arduino Code</button>
+            <button class="tab" onclick="showTab('voice')" data-en="Voice Recognition Setup" data-he="הגדרת זיהוי קול">Voice Recognition Setup</button>
+            <button class="tab" onclick="showTab('demo')" data-en="Interactive Demo" data-he="הדגמה אינטראקטיבית">Interactive Demo</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <div class="card">
+                <h2 data-en="Project Overview" data-he="סקירת הפרויקט">Project Overview</h2>
+                <p data-en="This Arduino project creates an electronic Hanukkah menorah (Hanukkiah) with 9 LEDs representing the 9 candles. Each button press lights one additional LED, and when all are lit, the next press turns them all off." data-he="פרויקט ארדואינו זה יוצר מנורת חנוכה אלקטרונית עם 9 נורות LED המייצגות 9 נרות. כל לחיצה על הכפתור מדליקה LED נוסף, וכאשר כולם דולקים, הלחיצה הבאה מכבה את כולם.">This Arduino project creates an electronic Hanukkah menorah (Hanukkiah) with 9 LEDs representing the 9 candles. Each button press lights one additional LED, and when all are lit, the next press turns them all off.</p>
+                
+                <h3 data-en="How It Works" data-he="איך זה עובד">How It Works</h3>
+                <ul>
+                    <li><strong data-en="First press:" data-he="לחיצה ראשונה:">First press:</strong> <span data-en="Lights the Shamash (center candle)" data-he="מדליקה את השמש (נר מרכזי)">Lights the Shamash (center candle)</span></li>
+                    <li><strong data-en="Presses 2-9:" data-he="לחיצות 2-9:">Presses 2-9:</strong> <span data-en="Light candles from right to left" data-he="מדליקות נרות מימין לשמאל">Light candles from right to left</span></li>
+                    <li><strong data-en="Final press (when all lit):" data-he="לחיצה אחרונה (כשהכל דולק):">Final press (when all lit):</strong> <span data-en="Turns all LEDs off" data-he="מכבה את כל הנורות">Turns all LEDs off</span></li>
+                    <li><strong data-en="Button debouncing:" data-he="נטרול רעידות כפתור:">Button debouncing:</strong> <span data-en="Prevents multiple triggers from single press" data-he="מונע הפעלות מרובות מלחיצה אחת">Prevents multiple triggers from single press</span></li>
+                </ul>
+
+                <h3 data-en="Key Features" data-he="תכונות עיקריות">Key Features</h3>
+                <ul>
+                    <li data-en="9 LEDs (8 blue + 1 white for Shamash)" data-he="9 נורות LED (8 כחולות + 1 לבנה לשמש)">9 LEDs (8 blue + 1 white for Shamash)</li>
+                    <li data-en="Single button control with debouncing" data-he="שליטה בכפתור יחיד עם נטרול רעידות">Single button control with debouncing</li>
+                    <li data-en="Sequential lighting pattern (right to left)" data-he="דפוס הדלקה רציף (מימין לשמאל)">Sequential lighting pattern (right to left)</li>
+                    <li data-en="Reset when all candles are lit" data-he="איפוס כאשר כל הנרות דולקים">Reset when all candles are lit</li>
+                    <li data-en="Simple breadboard design" data-he="עיצוב פשוט על ברדבורד">Simple breadboard design</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong data-en="⚠️ Important Notes" data-he="⚠️ הערות חשובות">⚠️ Important Notes</strong>
+                    <span data-en="The Shamash (center candle) should ideally be a different color (white/yellow) while the other 8 candles are traditionally blue. The menorah lights from right to left following Jewish tradition." data-he="השמש (נר מרכזי) צריך להיות בצבע שונה (לבן/צהוב) בעוד 8 הנרות האחרים כחולים באופן מסורתי. המנורה מדליקה מימין לשמאל לפי המסורת היהודית.">The Shamash (center candle) should ideally be a different color (white/yellow) while the other 8 candles are traditionally blue. The menorah lights from right to left following Jewish tradition.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parts List Tab -->
+        <div id="parts" class="tab-content">
+            <div class="card">
+                <h2 data-en="Required Components" data-he="רכיבים נדרשים">Required Components</h2>
+                <div class="parts-list">
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="Arduino Uno (or compatible)" data-he="ארדואינו אונו (או תואם)">Arduino Uno (or compatible)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">8</div>
+                        <div class="part-name" data-en="Blue LEDs (5mm)" data-he="נורות LED כחולות (5 מ״מ)">Blue LEDs (5mm)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="White or Yellow LED (5mm)" data-he="נורת LED לבנה או צהובה (5 מ״מ)">White or Yellow LED (5mm)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">9</div>
+                        <div class="part-name" data-en="220Ω Resistors" data-he="נגדים 220Ω">220Ω Resistors</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="10kΩ Resistor (pull-up)" data-he="נגד 10kΩ (pull-up)">10kΩ Resistor (pull-up)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="Push Button (tactile switch)" data-he="כפתור לחיצה (מתג טקטילי)">Push Button (tactile switch)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="Microphone Module (KY-038 or similar)" data-he="מודול מיקרופון (KY-038 או דומה)">Microphone Module (KY-038 or similar)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">1</div>
+                        <div class="part-name" data-en="Breadboard (half or full)" data-he="לוח לחם (חצי או מלא)">Breadboard (half or full)</div>
+                    </div>
+                    <div class="part-item">
+                        <div class="part-qty">~20</div>
+                        <div class="part-name" data-en="Jumper Wires (male-male)" data-he="חוטי גשר (זכר-זכר)">Jumper Wires (male-male)</div>
+                    </div>
+                </div>
+
+                <h3 data-en="Microphone Module Options" data-he="אפשרויות מודול מיקרופון">Microphone Module Options</h3>
+                <ul>
+                    <li><strong data-en="KY-038:" data-he="KY-038:">KY-038:</strong> <span data-en="Sound detection module with digital output (simple sound detection only)" data-he="מודול זיהוי קול עם פלט דיגיטלי (זיהוי קול פשוט בלבד)">Sound detection module with digital output (simple sound detection only)</span></li>
+                    <li><strong data-en="MAX4466:" data-he="MAX4466:">MAX4466:</strong> <span data-en="Electret microphone with adjustable gain (analog sound level)" data-he="מיקרופון אלקטרט עם הגבר מתכוונן (רמת קול אנלוגית)">Electret microphone with adjustable gain (analog sound level)</span></li>
+                    <li><strong data-en="LM393 Sound Sensor:" data-he="חיישן קול LM393:">LM393 Sound Sensor:</strong> <span data-en="Basic sound detection module (digital trigger only)" data-he="מודול זיהוי קול בסיסי (טריגר דיגיטלי בלבד)">Basic sound detection module (digital trigger only)</span></li>
+                </ul>
+
+                <h3 data-en="Voice Recognition Module Options (For Specific Word Detection)" data-he="אפשרויות מודול זיהוי קול (לזיהוי מילה ספציפית)">Voice Recognition Module Options (For Specific Word Detection)</h3>
+                <ul>
+                    <li><strong data-en="Arduino Nano 33 BLE Sense:" data-he="ארדואינו ננו 33 BLE Sense:">Arduino Nano 33 BLE Sense:</strong> <span data-en="Required for Edge Impulse voice recognition (~$30)" data-he="נדרש לזיהוי קול Edge Impulse (~$30)">Required for Edge Impulse voice recognition (~$30)</span></li>
+                    <li><strong data-en="Voice Recognition Module V3:" data-he="מודול זיהוי קול V3:">Voice Recognition Module V3:</strong> <span data-en="Train up to 80 custom commands (~$10-15)" data-he="אימון עד 80 פקודות מותאמות אישית (~$10-15)">Train up to 80 custom commands (~$10-15)</span></li>
+                    <li><strong data-en="DFRobot Offline Voice Recognition:" data-he="זיהוי קול לא מקוון DFRobot:">DFRobot Offline Voice Recognition:</strong> <span data-en="121 built-in + 17 custom commands (~$20-30)" data-he="121 מובנה + 17 פקודות מותאמות אישית (~$20-30)">121 built-in + 17 custom commands (~$20-30)</span></li>
+                </ul>
+
+                <div class="warning-box" style="margin-top: 16px;">
+                    <strong data-en="⚠️ Important: Basic vs. Voice Recognition" data-he="⚠️ חשוב: זיהוי בסיסי לעומת זיהוי קול">⚠️ Important: Basic vs. Voice Recognition</strong>
+                    <span data-en="The KY-038 microphone module can only detect sound presence (any noise above threshold). For specific word recognition like &quot;Hanukkah&quot; or &quot;light&quot;, you need either:" data-he="מודול המיקרופון KY-038 יכול לזהות רק נוכחות קול (כל רעש מעל הסף). לזיהוי מילה ספציפית כמו &quot;חנוכה&quot; או &quot;הדלק&quot;, אתה צריך אחד מהבאים:">The KY-038 microphone module can only detect sound presence (any noise above threshold). For specific word recognition like "Hanukkah" or "light", you need either:</span><br><br>
+                    <strong data-en="Option 1:" data-he="אפשרות 1:">Option 1:</strong> <span data-en="Use Edge Impulse (free) with Arduino Nano 33 BLE Sense" data-he="השתמש ב-Edge Impulse (חינם) עם ארדואינו ננו 33 BLE Sense">Use Edge Impulse (free) with Arduino Nano 33 BLE Sense</span><br>
+                    <strong data-en="Option 2:" data-he="אפשרות 2:">Option 2:</strong> <span data-en="Add a dedicated Voice Recognition Module V3" data-he="הוסף מודול זיהוי קול V3 ייעודי">Add a dedicated Voice Recognition Module V3</span><br><br>
+                    <span data-en="See the new &quot;Voice Recognition Setup&quot; tab for detailed instructions!" data-he="ראה את הלשונית החדשה &quot;הגדרת זיהוי קול&quot; להוראות מפורטות!">See the new "Voice Recognition Setup" tab for detailed instructions!</span>
+                </div>
+
+                <h3 data-en="Optional Components" data-he="רכיבים אופציונליים">Optional Components</h3>
+                <ul>
+                    <li data-en="9V battery + battery connector (for portable power)" data-he="סוללת 9V + מחבר סוללה (להספקה ניידת)">9V battery + battery connector (for portable power)</li>
+                    <li data-en="Decorative base or 3D printed enclosure" data-he="בסיס דקורטיבי או מעטפה מודפסת בתלת מימד">Decorative base or 3D printed enclosure</li>
+                    <li data-en="LED diffusers for better light effect" data-he="מפזרי אור LED לאפקט אור טוב יותר">LED diffusers for better light effect</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Wiring Tab -->
+        <div id="wiring" class="tab-content">
+            <div class="card">
+                <h2 data-en="Wiring Diagram" data-he="תרשים חיווט">Wiring Diagram</h2>
+                
+                <div class="wiring-diagram">
+                    <h3 data-en="LED Connections (Right to Left)" data-he="חיבורי LED (מימין לשמאל)">LED Connections (Right to Left)</h3>
+                    <table class="pin-table">
+                        <thead>
+                            <tr>
+                                <th data-en="LED Position" data-he="מיקום LED">LED Position</th>
+                                <th data-en="Arduino Pin" data-he="פין ארדואינו">Arduino Pin</th>
+                                <th data-en="LED Type" data-he="סוג LED">LED Type</th>
+                                <th data-en="Notes" data-he="הערות">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td data-en="Far Right (1st night)" data-he="קיצון ימין (לילה ראשון)">Far Right (1st night)</td>
+                                <td>Pin 2</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="First to light" data-he="ראשון להדלקה">First to light</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 2" data-he="מיקום 2">Position 2</td>
+                                <td>Pin 3</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="2nd night" data-he="לילה שני">2nd night</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 3" data-he="מיקום 3">Position 3</td>
+                                <td>Pin 4</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="3rd night" data-he="לילה שלישי">3rd night</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 4" data-he="מיקום 4">Position 4</td>
+                                <td>Pin 5</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="4th night" data-he="לילה רביעי">4th night</td>
+                            </tr>
+                            <tr>
+                                <td><strong data-en="Center (Shamash)" data-he="מרכז (שמש)">Center (Shamash)</strong></td>
+                                <td><strong>Pin 6</strong></td>
+                                <td><strong data-en="White/Yellow LED" data-he="LED לבן/צהוב">White/Yellow LED</strong></td>
+                                <td><strong data-en="Helper candle - always lit first" data-he="נר עזר - תמיד נדלק ראשון">Helper candle - always lit first</strong></td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 6" data-he="מיקום 6">Position 6</td>
+                                <td>Pin 7</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="5th night" data-he="לילה חמישי">5th night</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 7" data-he="מיקום 7">Position 7</td>
+                                <td>Pin 8</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="6th night" data-he="לילה שישי">6th night</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Position 8" data-he="מיקום 8">Position 8</td>
+                                <td>Pin 9</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="7th night" data-he="לילה שביעי">7th night</td>
+                            </tr>
+                            <tr>
+                                <td data-en="Far Left (8th night)" data-he="קיצון שמאל (לילה שמיני)">Far Left (8th night)</td>
+                                <td>Pin 10</td>
+                                <td data-en="Blue LED" data-he="LED כחול">Blue LED</td>
+                                <td data-en="Last to light" data-he="אחרון להדלקה">Last to light</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 data-en="Step-by-Step Wiring Instructions" data-he="הוראות חיווט שלב אחר שלב">Step-by-Step Wiring Instructions</h3>
+                
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    <span data-en="LED Setup" data-he="הגדרת LED">LED Setup</span>
+                </div>
+                <ul>
+                    <li data-en="Insert 9 LEDs into the breadboard in a row" data-he="הכנס 9 נורות LED ללוח הלחם בשורה">Insert 9 LEDs into the breadboard in a row</li>
+                    <li data-en="Long leg (anode, +) faces toward Arduino pins" data-he="רגל ארוכה (אנודה, +) פונה לכיוון פיני ארדואינו">Long leg (anode, +) faces toward Arduino pins</li>
+                    <li data-en="Short leg (cathode, -) faces toward ground rail" data-he="רגל קצרה (קתודה, -) פונה לכיוון פס הארקה">Short leg (cathode, -) faces toward ground rail</li>
+                    <li data-en="Place center LED (Shamash) slightly higher if possible" data-he="הנח את נורת ה-LED המרכזית (שמש) מעט גבוה יותר אם אפשר">Place center LED (Shamash) slightly higher if possible</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    <span data-en="Add Resistors" data-he="הוסף נגדים">Add Resistors</span>
+                </div>
+                <ul>
+                    <li data-en="Connect one 220Ω resistor to the cathode (short leg) of each LED" data-he="חבר נגד 220Ω אחד לקתודה (רגל קצרה) של כל LED">Connect one 220Ω resistor to the cathode (short leg) of each LED</li>
+                    <li data-en="Connect the other end of each resistor to the ground rail on breadboard" data-he="חבר את הקצה השני של כל נגד לפס הארקה בלוח הלחם">Connect the other end of each resistor to the ground rail on breadboard</li>
+                    <li data-en="This limits current and protects the LEDs" data-he="זה מגביל זרם ומגן על נורות ה-LED">This limits current and protects the LEDs</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    <span data-en="Connect LEDs to Arduino" data-he="חבר LED לארדואינו">Connect LEDs to Arduino</span>
+                </div>
+                <ul>
+                    <li data-en="Connect LED anodes (long legs) to Arduino pins 2-10 sequentially" data-he="חבר את האנודות של ה-LED (רגליים ארוכות) לפיני ארדואינו 2-10 ברצף">Connect LED anodes (long legs) to Arduino pins 2-10 sequentially</li>
+                    <li data-en="Rightmost LED → Pin 2" data-he="LED ימני ביותר → פין 2">Rightmost LED → Pin 2</li>
+                    <li data-en="Center LED (Shamash) → Pin 6" data-he="LED מרכזי (שמש) → פין 6">Center LED (Shamash) → Pin 6</li>
+                    <li data-en="Leftmost LED → Pin 10" data-he="LED שמאלי ביותר → פין 10">Leftmost LED → Pin 10</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    <span data-en="Button Setup" data-he="הגדרת כפתור">Button Setup</span>
+                </div>
+                <ul>
+                    <li data-en="Place push button on breadboard" data-he="הנח כפתור לחיצה על לוח הלחם">Place push button on breadboard</li>
+                    <li data-en="Connect one side of button to Arduino Pin 12" data-he="חבר צד אחד של הכפתור לפין ארדואינו 12">Connect one side of button to Arduino Pin 12</li>
+                    <li data-en="Connect same side to +5V through 10kΩ resistor (pull-up)" data-he="חבר את אותו צד ל-+5V דרך נגד 10kΩ (pull-up)">Connect same side to +5V through 10kΩ resistor (pull-up)</li>
+                    <li data-en="Connect other side of button to GND" data-he="חבר את הצד השני של הכפתור ל-GND">Connect other side of button to GND</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    <span data-en="Microphone Module Setup" data-he="הגדרת מודול מיקרופון">Microphone Module Setup</span>
+                </div>
+                <ul>
+                    <li data-en="Connect microphone VCC to Arduino 5V" data-he="חבר את VCC של המיקרופון ל-5V של ארדואינו">Connect microphone VCC to Arduino 5V</li>
+                    <li data-en="Connect microphone GND to Arduino GND" data-he="חבר את GND של המיקרופון ל-GND של ארדואינו">Connect microphone GND to Arduino GND</li>
+                    <li data-en="Connect microphone Digital OUT (DO) to Arduino Pin 11" data-he="חבר את Digital OUT (DO) של המיקרופון לפין ארדואינו 11">Connect microphone Digital OUT (DO) to Arduino Pin 11</li>
+                    <li data-en="Adjust sensitivity potentiometer on module for desired sound threshold" data-he="כוונן את הפוטנציומטר רגישות על המודול לסף קול רצוי">Adjust sensitivity potentiometer on module for desired sound threshold</li>
+                    <li data-en="Test: LED on module should light up when sound detected" data-he="בדיקה: LED על המודול צריך להדליק כאשר קול מזוהה">Test: LED on module should light up when sound detected</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">6</span>
+                    <span data-en="Power Connections" data-he="חיבורי חשמל">Power Connections</span>
+                </div>
+                <ul>
+                    <li data-en="Connect Arduino GND to breadboard ground rail" data-he="חבר את GND של ארדואינו לפס הארקה של לוח הלחם">Connect Arduino GND to breadboard ground rail</li>
+                    <li data-en="Connect Arduino 5V to breadboard power rail (if using for button)" data-he="חבר את 5V של ארדואינו לפס החשמל של לוח הלחם (אם משתמשים לכפתור)">Connect Arduino 5V to breadboard power rail (if using for button)</li>
+                    <li data-en="Ensure all grounds are connected" data-he="ודא שכל ההארקות מחוברות">Ensure all grounds are connected</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong data-en="⚠️ LED Polarity Check" data-he="⚠️ בדיקת קוטביות LED">⚠️ LED Polarity Check</strong>
+                    <span data-en="LEDs only work in one direction! The flat edge of the LED indicates the cathode (negative side). If an LED doesn't light up, check that it's oriented correctly." data-he="נורות LED עובדות רק בכיוון אחד! הקצה השטוח של ה-LED מציין את הקתודה (צד שלילי). אם LED לא נדלק, בדוק שהוא מכוון נכון.">LEDs only work in one direction! The flat edge of the LED indicates the cathode (negative side). If an LED doesn't light up, check that it's oriented correctly.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Code Tab -->
+        <div id="code" class="tab-content">
+            <div class="card">
+                <h2 data-en="Arduino Code" data-he="קוד ארדואינו">Arduino Code</h2>
+                <p data-en="Copy this code into your Arduino IDE and upload it to your board:" data-he="העתק את הקוד הזה ל-Arduino IDE שלך והעלה אותו ללוח שלך:">Copy this code into your Arduino IDE and upload it to your board:</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyCode()" data-en="Copy Code" data-he="העתק קוד">Copy Code</button>
+                    <pre id="arduino-code">/*
+ * Arduino Hanukkah Menorah
+ * Lights one LED at a time with each button press
+ * When all LEDs are lit, next press turns them all off
+ */
+
+// LED pins (right to left, with Shamash in center)
+const int ledPins[9] = {2, 3, 4, 5, 6, 7, 8, 9, 10};
+const int shamashPin = 6; // Center LED (5th in array, index 4)
+
+// Button configuration
+const int buttonPin = 12;
+
+// Microphone configuration
+const int micPin = 11;
+
+// State variables
+int lightCount = 0;           // How many LEDs are currently lit
+int lastButtonState = HIGH;   // Previous button state
+int buttonState;              // Current button state
+int lastMicState = LOW;       // Previous microphone state
+int micState;                 // Current microphone state
+unsigned long lastDebounceTime = 0;
+unsigned long lastMicDebounceTime = 0;
+unsigned long debounceDelay = 50; // Debounce time in milliseconds
+unsigned long micDebounceDelay = 300; // Longer delay for microphone to prevent multiple triggers
+
+void setup() {
+  // Initialize all LED pins as outputs
+  for (int i = 0; i < 9; i++) {
+    pinMode(ledPins[i], OUTPUT);
+    digitalWrite(ledPins[i], LOW);
+  }
+  
+  // Initialize button pin with internal pull-up
+  pinMode(buttonPin, INPUT_PULLUP);
+  
+  // Initialize microphone pin as input
+  pinMode(micPin, INPUT);
+  
+  // Optional: Serial for debugging
+  Serial.begin(9600);
+  Serial.println("Hanukkah Menorah Ready!");
+  Serial.println("Press button or say a word to light candles");
+}
+
+void loop() {
+  // Read button state
+  int reading = digitalRead(buttonPin);
+  
+  // Check if button state changed (for debouncing)
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+  
+  // If enough time has passed, consider it a valid button press
+  if ((millis() - lastDebounceTime) > debounceDelay) {
+    // If button state has changed
+    if (reading != buttonState) {
+      buttonState = reading;
+      
+      // Only trigger on button press (LOW because of INPUT_PULLUP)
+      if (buttonState == LOW) {
+        triggerNextCandle("Button");
+      }
+    }
+  }
+  
+  // Save button state for next loop
+  lastButtonState = reading;
+  
+  // Read microphone state
+  int micReading = digitalRead(micPin);
+  
+  // Check if microphone detected sound
+  if (micReading != lastMicState) {
+    lastMicDebounceTime = millis();
+  }
+  
+  // If enough time has passed, consider it a valid sound detection
+  if ((millis() - lastMicDebounceTime) > micDebounceDelay) {
+    // If microphone state has changed
+    if (micReading != micState) {
+      micState = micReading;
+      
+      // Trigger on sound detection (HIGH signal from module)
+      if (micState == HIGH) {
+        triggerNextCandle("Voice");
+      }
+    }
+  }
+  
+  // Save microphone state for next loop
+  lastMicState = micReading;
+}
+
+void triggerNextCandle(String source) {
+  // Increment light count
+  lightCount++;
+  
+  // If we've lit all candles, reset to 0
+  if (lightCount > 9) {
+    lightCount = 0;
+    Serial.println("Resetting - All candles extinguished");
+  }
+  
+  // Update the LEDs
+  updateLEDs();
+  
+  // Print status
+  Serial.print(source);
+  Serial.print(" triggered! Candles lit: ");
+  Serial.println(lightCount);
+}
+
+void updateLEDs() {
+  // Turn off all LEDs first
+  for (int i = 0; i < 9; i++) {
+    digitalWrite(ledPins[i], LOW);
+  }
+  
+  // If no candles should be lit, we're done
+  if (lightCount == 0) {
+    return;
+  }
+  
+  // Light the Shamash (always lit first)
+  digitalWrite(shamashPin, HIGH);
+  
+  // Light additional candles from right to left
+  // Skip the Shamash position (index 4)
+  int candlesToLight = lightCount - 1; // Subtract 1 because Shamash is already lit
+  
+  // Light candles to the right of Shamash (indices 0-3)
+  for (int i = 0; i < 4 && i < candlesToLight; i++) {
+    digitalWrite(ledPins[i], HIGH);
+  }
+  
+  // Light candles to the left of Shamash (indices 5-8)
+  for (int i = 5; i < 9 && (i - 1) < candlesToLight; i++) {
+    digitalWrite(ledPins[i], HIGH);
+  }
+}</pre>
+                </div>
+
+                <h3 data-en="Code Explanation" data-he="הסבר על הקוד">Code Explanation</h3>
+                <ul>
+                    <li><strong data-en="ledPins array:" data-he="מערך ledPins:">ledPins array:</strong> <span data-en="Stores all 9 LED pin numbers" data-he="שומר את כל 9 מספרי הפינים של ה-LED">Stores all 9 LED pin numbers</span></li>
+                    <li><strong data-en="shamashPin:" data-he="shamashPin:">shamashPin:</strong> <span data-en="The center candle (pin 6) that lights first" data-he="הנר המרכזי (פין 6) שנדלק ראשון">The center candle (pin 6) that lights first</span></li>
+                    <li><strong data-en="lightCount:" data-he="lightCount:">lightCount:</strong> <span data-en="Tracks how many candles should be lit (0-9)" data-he="עוקב אחר כמה נרות צריכים להיות דולקים (0-9)">Tracks how many candles should be lit (0-9)</span></li>
+                    <li><strong data-en="Debouncing:" data-he="נטרול רעידות:">Debouncing:</strong> <span data-en="Prevents multiple triggers from button bounce" data-he="מונע הפעלות מרובות מרעידת כפתור">Prevents multiple triggers from button bounce</span></li>
+                    <li><strong data-en="micPin:" data-he="micPin:">micPin:</strong> <span data-en="Digital pin for microphone sound detection" data-he="פין דיגיטלי לזיהוי קול מיקרופון">Digital pin for microphone sound detection</span></li>
+                    <li><strong data-en="micDebounceDelay:" data-he="micDebounceDelay:">micDebounceDelay:</strong> <span data-en="Longer delay (300ms) to prevent multiple triggers from single sound" data-he="עיכוב ארוך יותר (300ms) כדי למנוע הפעלות מרובות מקול בודד">Longer delay (300ms) to prevent multiple triggers from single sound</span></li>
+                    <li><strong data-en="triggerNextCandle():" data-he="triggerNextCandle():">triggerNextCandle():</strong> <span data-en="Unified function for both button and voice activation" data-he="פונקציה מאוחדת להפעלה בכפתור ובקול">Unified function for both button and voice activation</span></li>
+                    <li><strong data-en="updateLEDs():" data-he="updateLEDs():">updateLEDs():</strong> <span data-en="Lights the appropriate LEDs based on count" data-he="מדליק את נורות ה-LED המתאימות לפי הספירה">Lights the appropriate LEDs based on count</span></li>
+                    <li><strong data-en="INPUT_PULLUP:" data-he="INPUT_PULLUP:">INPUT_PULLUP:</strong> <span data-en="Uses Arduino's internal pull-up resistor for button" data-he="משתמש בנגד pull-up פנימי של ארדואינו לכפתור">Uses Arduino's internal pull-up resistor for button</span></li>
+                </ul>
+
+                <h3 data-en="Customization Options" data-he="אפשרויות התאמה אישית">Customization Options</h3>
+                <ul>
+                    <li data-en="Change <code>debounceDelay</code> if button is too sensitive/unresponsive" data-he="שנה את <code>debounceDelay</code> אם הכפתור רגיש מדי/לא מגיב">Change <code>debounceDelay</code> if button is too sensitive/unresponsive</li>
+                    <li data-en="Adjust <code>micDebounceDelay</code> (300-500ms) to prevent multiple triggers" data-he="כוונן את <code>micDebounceDelay</code> (300-500ms) כדי למנוע הפעלות מרובות">Adjust <code>micDebounceDelay</code> (300-500ms) to prevent multiple triggers</li>
+                    <li data-en="Tune microphone sensitivity using the potentiometer on the module" data-he="כוונן רגישות מיקרופון באמצעות הפוטנציומטר על המודול">Tune microphone sensitivity using the potentiometer on the module</li>
+                    <li data-en="Add LED animations (fade in/out, flicker effect)" data-he="הוסף אנימציות LED (דעיכה, אפקט ריצוד)">Add LED animations (fade in/out, flicker effect)</li>
+                    <li data-en="Add a buzzer to play sounds on activation" data-he="הוסף זמזם להשמעת צלילים בהפעלה">Add a buzzer to play sounds on activation</li>
+                    <li data-en="Modify lighting order or pattern" data-he="שנה את סדר ההדלקה או הדפוס">Modify lighting order or pattern</li>
+                    <li data-en="Use analog microphone input for more precise sound detection" data-he="השתמש בקלט מיקרופון אנלוגי לזיהוי קול מדויק יותר">Use analog microphone input for more precise sound detection</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong data-en="⚠️ Microphone Sensitivity" data-he="⚠️ רגישות מיקרופון">⚠️ Microphone Sensitivity</strong>
+                    <span data-en="The microphone will trigger on ANY sound above the threshold. Adjust the sensitivity potentiometer on the module so it only responds to intentional sounds (clapping, saying a word, etc.) and not background noise." data-he="המיקרופון יפעיל על כל קול מעל הסף. כוונן את הפוטנציומטר רגישות על המודול כך שהוא יגיב רק לקולות מכוונים (מחיאות כפיים, אמירת מילה וכו') ולא לרעש רקע.">The microphone will trigger on ANY sound above the threshold. Adjust the sensitivity potentiometer on the module so it only responds to intentional sounds (clapping, saying a word, etc.) and not background noise.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Recognition Tab -->
+        <div id="voice" class="tab-content">
+            <div class="card">
+                <h2 data-en="Voice Recognition Setup with Edge Impulse" data-he="הגדרת זיהוי קול עם Edge Impulse">Voice Recognition Setup with Edge Impulse</h2>
+                <p data-en="Train your Arduino to recognize a specific word (like &quot;Hanukkah&quot;, &quot;light&quot;, or &quot;candle&quot;) using Edge Impulse - completely free!" data-he="אמן את הארדואינו שלך לזהות מילה ספציפית (כמו &quot;חנוכה&quot;, &quot;הדלק&quot; או &quot;נר&quot;) באמצעות Edge Impulse - חינם לחלוטין!">Train your Arduino to recognize a specific word (like "Hanukkah", "light", or "candle") using Edge Impulse - completely free!</p>
+
+                <h3 data-en="What You'll Need" data-he="מה תצטרך">What You'll Need</h3>
+                <ul>
+                    <li><strong data-en="Arduino Nano 33 BLE Sense" data-he="ארדואינו ננו 33 BLE Sense">Arduino Nano 33 BLE Sense</strong> - <span data-en="Has built-in microphone for voice recognition" data-he="יש מיקרופון מובנה לזיהוי קול">Has built-in microphone for voice recognition</span></li>
+                    <li><strong data-en="Edge Impulse Account" data-he="חשבון Edge Impulse">Edge Impulse Account</strong> - <span data-en="Free at" data-he="חינם ב">Free at</span> <a href="https://studio.edgeimpulse.com/signup" target="_blank">edgeimpulse.com</a></li>
+                    <li><strong data-en="Edge Impulse CLI" data-he="Edge Impulse CLI">Edge Impulse CLI</strong> - <span data-en="Command line tools (free)" data-he="כלי שורת פקודה (חינם)">Command line tools (free)</span></li>
+                    <li><strong data-en="Arduino CLI" data-he="Arduino CLI">Arduino CLI</strong> - <span data-en="For flashing firmware (free)" data-he="להטענת קושחה (חינם)">For flashing firmware (free)</span></li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong data-en="📝 Note:" data-he="📝 הערה:">📝 Note:</strong> <span data-en="The basic KY-038 microphone cannot recognize specific words. For true voice recognition, you need Arduino Nano 33 BLE Sense with Edge Impulse, or a dedicated voice recognition module." data-he="המיקרופון הבסיסי KY-038 לא יכול לזהות מילים ספציפיות. לזיהוי קול אמיתי, אתה צריך ארדואינו ננו 33 BLE Sense עם Edge Impulse, או מודול זיהוי קול ייעודי.">The basic KY-038 microphone cannot recognize specific words. For true voice recognition, you need Arduino Nano 33 BLE Sense with Edge Impulse, or a dedicated voice recognition module.</span>
+                </div>
+
+                <h3 data-en="Step-by-Step Guide" data-he="מדריך שלב אחר שלב">Step-by-Step Guide</h3>
+
+                <div class="step-title">
+                    <span class="step-number">1</span>
+                    <span data-en="Create Edge Impulse Account" data-he="צור חשבון Edge Impulse">Create Edge Impulse Account</span>
+                </div>
+                <ul>
+                    <li data-en="Go to" data-he="עבור ל">Go to <a href="https://studio.edgeimpulse.com/signup" target="_blank">studio.edgeimpulse.com/signup</a></li>
+                    <li data-en="Sign up for a free account" data-he="הירשם לחשבון חינם">Sign up for a free account</li>
+                    <li data-en="Create a new project called &quot;Hanukkah_Voice&quot;" data-he="צור פרויקט חדש בשם &quot;Hanukkah_Voice&quot;">Create a new project called "Hanukkah_Voice"</li>
+                    <li data-en="Select &quot;Audio&quot; as the data type" data-he="בחר &quot;Audio&quot; כסוג הנתונים">Select "Audio" as the data type</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">2</span>
+                    <span data-en="Install Required Software" data-he="התקן תוכנה נדרשת">Install Required Software</span>
+                </div>
+                <ul>
+                    <li><strong data-en="Node.js:" data-he="Node.js:">Node.js:</strong> <span data-en="Download from" data-he="הורד מ">Download from</span> <a href="https://nodejs.org" target="_blank">nodejs.org</a></li>
+                    <li><strong data-en="Arduino CLI:" data-he="Arduino CLI:">Arduino CLI:</strong> <span data-en="Download from" data-he="הורד מ">Download from</span> <a href="https://arduino.cc/en/software" target="_blank">arduino.cc</a></li>
+                    <li><strong data-en="Edge Impulse CLI:" data-he="Edge Impulse CLI:">Edge Impulse CLI:</strong> <span data-en="Open terminal/command prompt and run:" data-he="פתח טרמינל/שורת פקודה והרץ:">Open terminal/command prompt and run:</span>
+                        <div class="code-block" style="margin-top: 8px;">
+                            <pre>npm install -g edge-impulse-cli</pre>
+                        </div>
+                    </li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">3</span>
+                    <span data-en="Flash Arduino with Edge Impulse Firmware" data-he="הטען ארדואינו עם קושחת Edge Impulse">Flash Arduino with Edge Impulse Firmware</span>
+                </div>
+                <ul>
+                    <li data-en="Download firmware from Edge Impulse for Arduino Nano 33 BLE Sense" data-he="הורד קושחה מ-Edge Impulse לארדואינו ננו 33 BLE Sense">Download firmware from Edge Impulse for Arduino Nano 33 BLE Sense</li>
+                    <li data-en="Connect your Arduino Nano 33 BLE Sense to your computer" data-he="חבר את הארדואינו ננו 33 BLE Sense שלך למחשב">Connect your Arduino Nano 33 BLE Sense to your computer</li>
+                    <li data-en="Double-press the reset button (LED will pulse yellow)" data-he="לחץ פעמיים על כפתור האיפוס (LED יפעם בצהוב)">Double-press the reset button (LED will pulse yellow)</li>
+                    <li data-en="Run the flash script:" data-he="הרץ את סקריפט ההטענה:">Run the flash script:
+                        <ul>
+                            <li data-en="Windows:" data-he="Windows:">Windows: <code>flash_windows.bat</code></li>
+                            <li data-en="Mac:" data-he="Mac:">Mac: <code>flash_mac.command</code></li>
+                            <li data-en="Linux:" data-he="Linux:">Linux: <code>flash_linux.sh</code></li>
+                        </ul>
+                    </li>
+                    <li data-en="Press reset once when complete" data-he="לחץ על איפוס פעם אחת כשסיימת">Press reset once when complete</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">4</span>
+                    <span data-en="Connect Board to Edge Impulse" data-he="חבר לוח ל-Edge Impulse">Connect Board to Edge Impulse</span>
+                </div>
+                <ul>
+                    <li data-en="Open terminal/command prompt" data-he="פתח טרמינל/שורת פקודה">Open terminal/command prompt</li>
+                    <li data-en="Run:" data-he="הרץ:">Run: <code>edge-impulse-daemon</code></li>
+                    <li data-en="Log in with your Edge Impulse credentials" data-he="התחבר עם פרטי ההתחברות שלך ל-Edge Impulse">Log in with your Edge Impulse credentials</li>
+                    <li data-en="Select your serial port (Arduino board)" data-he="בחר את יציאת הסריאל שלך (לוח ארדואינו)">Select your serial port (Arduino board)</li>
+                    <li data-en="Select your project &quot;Hanukkah_Voice&quot;" data-he="בחר את הפרויקט שלך &quot;Hanukkah_Voice&quot;">Select your project "Hanukkah_Voice"</li>
+                    <li data-en="Verify device appears in Edge Impulse dashboard under &quot;Devices&quot;" data-he="ודא שהמכשיר מופיע בלוח הבקרה של Edge Impulse תחת &quot;Devices&quot;">Verify device appears in Edge Impulse dashboard under "Devices"</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">5</span>
+                    <span data-en="Collect Training Data" data-he="אסוף נתוני אימון">Collect Training Data</span>
+                </div>
+                <ul>
+                    <li data-en="In Edge Impulse, go to" data-he="ב-Edge Impulse, עבור ל">In Edge Impulse, go to <strong data-en="Data Acquisition" data-he="רכישת נתונים">Data Acquisition</strong></li>
+                    <li data-en="Keep microphone close to you (6-12 inches)" data-he="שמור את המיקרופון קרוב אליך (15-30 ס״מ)">Keep microphone close to you (6-12 inches)</li>
+                    <li data-en="Label: &quot;hanukkah&quot; (or your chosen word)" data-he="תווית: &quot;hanukkah&quot; (או המילה שבחרת)">Label: "hanukkah" (or your chosen word)</li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Start Sampling" data-he="התחל דגימה">Start Sampling</strong></li>
+                    <li data-en="Say your word clearly during the 2.5-second recording" data-he="אמור את המילה שלך בבירור במהלך ההקלטה של 2.5 שניות">Say your word clearly during the 2.5-second recording</li>
+                    <li data-en="Record at least" data-he="הקלט לפחות">Record at least <strong data-en="50 samples" data-he="50 דגימות">50 samples</strong> <span data-en="of your word" data-he="של המילה שלך">of your word</span></li>
+                    <li data-en="Vary your voice pitch and speed slightly" data-he="שנה מעט את גובה הקול והמהירות שלך">Vary your voice pitch and speed slightly</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">6</span>
+                    <span data-en="Collect Noise Samples" data-he="אסוף דגימות רעש">Collect Noise Samples</span>
+                </div>
+                <ul>
+                    <li data-en="Label: &quot;noise&quot;" data-he="תווית: &quot;noise&quot;">Label: "noise"</li>
+                    <li data-en="Record 50 samples of silence and background sounds" data-he="הקלט 50 דגימות של שקט וצלילי רקע">Record 50 samples of silence and background sounds</li>
+                    <li data-en="Don't say your keyword during these recordings" data-he="אל תגיד את מילת המפתח שלך במהלך ההקלטות האלה">Don't say your keyword during these recordings</li>
+                    <li data-en="This teaches the model what to ignore" data-he="זה מלמד את המודל מה להתעלם">This teaches the model what to ignore</li>
+                    <li data-en="Total dataset: ~200 samples (100 keyword + 100 noise)" data-he="סך הכל מערך נתונים: ~200 דגימות (100 מילת מפתח + 100 רעש)">Total dataset: ~200 samples (100 keyword + 100 noise)</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">7</span>
+                    <span data-en="Design Your Impulse" data-he="עצב את ה-Impulse שלך">Design Your Impulse</span>
+                </div>
+                <ul>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="Impulse Design" data-he="עיצוב Impulse">Impulse Design</strong> <span data-en="tab" data-he="לשונית">tab</span></li>
+                    <li data-en="Add processing block:" data-he="הוסף בלוק עיבוד:">Add processing block: <strong data-en="Audio (MFCC)" data-he="Audio (MFCC)">Audio (MFCC)</strong></li>
+                    <li data-en="Add learning block:" data-he="הוסף בלוק למידה:">Add learning block: <strong data-en="Classification" data-he="סיווג">Classification</strong></li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Save Impulse" data-he="שמור Impulse">Save Impulse</strong></li>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="MFCC" data-he="MFCC">MFCC</strong> <span data-en="tab, click" data-he="לשונית, לחץ על">tab, click</span> <strong data-en="Save parameters" data-he="שמור פרמטרים">Save parameters</strong></li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Generate features" data-he="צור תכונות">Generate features</strong></li>
+                    <li data-en="View feature explorer to verify data quality" data-he="צפה ב-feature explorer כדי לאמת את איכות הנתונים">View feature explorer to verify data quality</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">8</span>
+                    <span data-en="Train Your Model" data-he="אמן את המודל שלך">Train Your Model</span>
+                </div>
+                <ul>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="Classifier" data-he="מסווג">Classifier</strong> <span data-en="tab" data-he="לשונית">tab</span></li>
+                    <li data-en="Keep default settings (60 training cycles, 0.0005 learning rate)" data-he="שמור הגדרות ברירת מחדל (60 מחזורי אימון, קצב למידה 0.0005)">Keep default settings (60 training cycles, 0.0005 learning rate)</li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Start Training" data-he="התחל אימון">Start Training</strong></li>
+                    <li data-en="Wait 1-3 minutes for training to complete" data-he="המתן 1-3 דקות לסיום האימון">Wait 1-3 minutes for training to complete</li>
+                    <li data-en="Check accuracy - aim for 85%+ (retrain if lower)" data-he="בדוק דיוק - שאף ל-85%+ (אמן מחדש אם נמוך יותר)">Check accuracy - aim for 85%+ (retrain if lower)</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">9</span>
+                    <span data-en="Test Your Model" data-he="בדוק את המודל שלך">Test Your Model</span>
+                </div>
+                <ul>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="Live Classification" data-he="סיווג חי">Live Classification</strong> <span data-en="tab" data-he="לשונית">tab</span></li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Start sampling" data-he="התחל דגימה">Start sampling</strong></li>
+                    <li data-en="Say your keyword - it should detect with high confidence (>0.8)" data-he="אמור את מילת המפתח שלך - זה אמור לזהות עם ביטחון גבוה (>0.8)">Say your keyword - it should detect with high confidence (>0.8)</li>
+                    <li data-en="Test with silence - should detect as &quot;noise&quot;" data-he="בדוק עם שקט - אמור לזהות כ-&quot;noise&quot;">Test with silence - should detect as "noise"</li>
+                    <li data-en="If detection is poor, collect more samples and retrain" data-he="אם הזיהוי גרוע, אסוף עוד דגימות ואמן מחדש">If detection is poor, collect more samples and retrain</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">10</span>
+                    <span data-en="Download Arduino Library" data-he="הורד ספריית ארדואינו">Download Arduino Library</span>
+                </div>
+                <ul>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="Deployment" data-he="פריסה">Deployment</strong> <span data-en="tab" data-he="לשונית">tab</span></li>
+                    <li data-en="Select" data-he="בחר">Select <strong data-en="Arduino library" data-he="ספריית ארדואינו">Arduino library</strong></li>
+                    <li data-en="Click" data-he="לחץ על">Click <strong data-en="Build" data-he="בנה">Build</strong> <span data-en="(EON compiler optimizes the model)" data-he="(מהדר EON ממטב את המודל)">(EON compiler optimizes the model)</span></li>
+                    <li data-en="Download the .ZIP file" data-he="הורד את קובץ ה-.ZIP">Download the .ZIP file</li>
+                    <li data-en="Close the" data-he="סגור את">Close the <code>edge-impulse-daemon</code> <span data-en="terminal" data-he="טרמינל">terminal</span></li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">11</span>
+                    <span data-en="Install Library in Arduino IDE" data-he="התקן ספרייה ב-Arduino IDE">Install Library in Arduino IDE</span>
+                </div>
+                <ul>
+                    <li data-en="Open Arduino IDE" data-he="פתח Arduino IDE">Open Arduino IDE</li>
+                    <li data-en="Go to" data-he="עבור ל">Go to <strong data-en="Sketch → Include Library → Add .ZIP Library" data-he="Sketch → Include Library → Add .ZIP Library">Sketch → Include Library → Add .ZIP Library</strong></li>
+                    <li data-en="Select the downloaded Edge Impulse .ZIP file" data-he="בחר את קובץ ה-.ZIP של Edge Impulse שהורד">Select the downloaded Edge Impulse .ZIP file</li>
+                    <li data-en="Wait for installation to complete" data-he="המתן לסיום ההתקנה">Wait for installation to complete</li>
+                </ul>
+
+                <div class="step-title">
+                    <span class="step-number">12</span>
+                    <span data-en="Integrate with Menorah Code" data-he="שלב עם קוד המנורה">Integrate with Menorah Code</span>
+                </div>
+                <p data-en="Modify your Arduino code to use the trained model. Here's the integration pattern:" data-he="שנה את קוד הארדואינו שלך כדי להשתמש במודל המאומן. הנה דפוס השילוב:">Modify your Arduino code to use the trained model. Here's the integration pattern:</p>
+
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyVoiceCode()" data-en="Copy Code" data-he="העתק קוד">Copy Code</button>
+                    <pre id="voice-code">/*
+ * Arduino Hanukkah Menorah with Edge Impulse Voice Recognition
+ * Say your trained word to light candles!
+ */
+
+// Include your Edge Impulse library (name depends on your project)
+
+// LED pins
+const int ledPins[9] = {2, 3, 4, 5, 6, 7, 8, 9, 10};
+const int shamashPin = 6;
+
+// Button configuration
+const int buttonPin = 12;
+
+// State variables
+int lightCount = 0;
+int lastButtonState = HIGH;
+unsigned long lastDebounceTime = 0;
+unsigned long debounceDelay = 50;
+
+// Audio buffer for Edge Impulse
+static signed short sampleBuffer[EI_CLASSIFIER_RAW_SAMPLE_COUNT];
+static bool debug_nn = false;
+
+void setup() {
+  // Initialize LEDs
+  for (int i = 0; i &lt; 9; i++) {
+    pinMode(ledPins[i], OUTPUT);
+    digitalWrite(ledPins[i], LOW);
+  }
+  
+  pinMode(buttonPin, INPUT_PULLUP);
+  
+  Serial.begin(115200);
+  Serial.println("Hanukkah Menorah with Voice Recognition Ready!");
+  
+  // Initialize Edge Impulse
+  if (microphone_inference_start(EI_CLASSIFIER_RAW_SAMPLE_COUNT) == false) {
+    Serial.println("ERR: Failed to start microphone");
+  }
+}
+
+void loop() {
+  // Button handling (same as before)
+  int reading = digitalRead(buttonPin);
+  
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();
+  }
+  
+  if ((millis() - lastDebounceTime) &gt; debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+      if (buttonState == LOW) {
+        triggerNextCandle("Button");
+      }
+    }
+  }
+  lastButtonState = reading;
+  
+  // Voice recognition handling
+  bool m = microphone_inference_record();
+  if (!m) {
+    Serial.println("ERR: Failed to record audio");
+    return;
+  }
+  
+  signal_t signal;
+  signal.total_length = EI_CLASSIFIER_RAW_SAMPLE_COUNT;
+  signal.get_data = &amp;microphone_audio_signal_get_data;
+  
+  ei_impulse_result_t result = { 0 };
+  
+  EI_IMPULSE_ERROR r = run_classifier(&amp;signal, &amp;result, debug_nn);
+  if (r != EI_IMPULSE_OK) {
+    Serial.println("ERR: Failed to run classifier");
+    return;
+  }
+  
+  // Check if your keyword was detected with high confidence
+  // Replace "hanukkah" with your label name (index depends on your training)
+  for (size_t ix = 0; ix &lt; EI_CLASSIFIER_LABEL_COUNT; ix++) {
+    if (String(result.classification[ix].label) == "hanukkah") {
+      if (result.classification[ix].value &gt; 0.75) {  // 75% confidence threshold
+        triggerNextCandle("Voice");
+        delay(500);  // Prevent multiple triggers
+      }
+    }
+  }
+}
+
+void triggerNextCandle(String source) {
+  lightCount++;
+  
+  if (lightCount &gt; 9) {
+    lightCount = 0;
+    Serial.println("Resetting - All candles extinguished");
+  }
+  
+  updateLEDs();
+  
+  Serial.print(source);
+  Serial.print(" triggered! Candles lit: ");
+  Serial.println(lightCount);
+}
+
+void updateLEDs() {
+  // Turn off all LEDs
+  for (int i = 0; i &lt; 9; i++) {
+    digitalWrite(ledPins[i], LOW);
+  }
+  
+  if (lightCount == 0) {
+    return;
+  }
+  
+  // Light the Shamash
+  digitalWrite(shamashPin, HIGH);
+  
+  // Light additional candles
+  int candlesToLight = lightCount - 1;
+  
+  for (int i = 0; i &lt; 4 &amp;&amp; i &lt; candlesToLight; i++) {
+    digitalWrite(ledPins[i], HIGH);
+  }
+  
+  for (int i = 5; i &lt; 9 &amp;&amp; (i - 1) &lt; candlesToLight; i++) {
+    digitalWrite(ledPins[i], HIGH);
+  }
+}</pre>
+                </div>
+
+                <h3 data-en="Troubleshooting Tips" data-he="טיפים לפתרון בעיות">Troubleshooting Tips</h3>
+                <ul>
+                    <li><strong data-en="Low accuracy (&lt;80%):" data-he="דיוק נמוך (&lt;80%):">Low accuracy (&lt;80%):</strong> <span data-en="Collect more samples (aim for 100+ per class)" data-he="אסוף עוד דגימות (שאף ל-100+ לכל מחלקה)">Collect more samples (aim for 100+ per class)</span></li>
+                    <li><strong data-en="False positives:" data-he="זיהויים שגויים:">False positives:</strong> <span data-en="Add more noise samples, increase confidence threshold" data-he="הוסף עוד דגימות רעש, הגדל סף ביטחון">Add more noise samples, increase confidence threshold</span></li>
+                    <li><strong data-en="Not detecting word:" data-he="לא מזהה מילה:">Not detecting word:</strong> <span data-en="Speak closer to microphone, retrain with varied pronunciations" data-he="דבר קרוב יותר למיקרופון, אמן מחדש עם הגיות מגוונות">Speak closer to microphone, retrain with varied pronunciations</span></li>
+                    <li><strong data-en="Board not connecting:" data-he="לוח לא מתחבר:">Board not connecting:</strong> <span data-en="Check USB cable, try different port, reinstall firmware" data-he="בדוק כבל USB, נסה יציאה אחרת, התקן מחדש קושחה">Check USB cable, try different port, reinstall firmware</span></li>
+                    <li><strong data-en="Compilation errors:" data-he="שגיאות קומפילציה:">Compilation errors:</strong> <span data-en="Verify library name matches your project name" data-he="ודא ששם הספרייה תואם לשם הפרויקט שלך">Verify library name matches your project name</span></li>
+                    <li><strong data-en="High memory usage:" data-he="שימוש זיכרון גבוה:">High memory usage:</strong> <span data-en="Edge Impulse EON compiler should optimize automatically" data-he="מהדר Edge Impulse EON אמור למטב אוטומטית">Edge Impulse EON compiler should optimize automatically</span></li>
+                </ul>
+
+                <h3 data-en="Alternative: Voice Recognition Module V3" data-he="אלטרנטיבה: מודול זיהוי קול V3">Alternative: Voice Recognition Module V3</h3>
+                <p data-en="If you prefer hardware-based recognition without Edge Impulse:" data-he="אם אתה מעדיף זיהוי מבוסס חומרה ללא Edge Impulse:">If you prefer hardware-based recognition without Edge Impulse:</p>
+                <ul>
+                    <li data-en="Purchase Voice Recognition Module V3 (~$10-15)" data-he="קנה מודול זיהוי קול V3 (~$10-15)">Purchase Voice Recognition Module V3 (~$10-15)</li>
+                    <li data-en="Connect VCC to 5V, GND to GND, RX to Arduino TX, TX to Arduino RX" data-he="חבר VCC ל-5V, GND ל-GND, RX ל-Arduino TX, TX ל-Arduino RX">Connect VCC to 5V, GND to GND, RX to Arduino TX, TX to Arduino RX</li>
+                    <li data-en="Use Arduino serial commands to train voice commands" data-he="השתמש בפקודות סריאל של ארדואינו לאמן פקודות קול">Use Arduino serial commands to train voice commands</li>
+                    <li data-en="Module stores 80 commands on-board" data-he="המודול שומר 80 פקודות על הלוח">Module stores 80 commands on-board</li>
+                    <li data-en="Check manufacturer documentation for training procedure" data-he="בדוק את תיעוד היצרן להליך האימון">Check manufacturer documentation for training procedure</li>
+                </ul>
+
+                <div class="warning-box">
+                    <strong data-en="✅ Recommended Approach:" data-he="✅ גישה מומלצת:">✅ Recommended Approach:</strong> <span data-en="Edge Impulse with Arduino Nano 33 BLE Sense offers the best balance of accuracy, customization, and cost (free software + ~$30 hardware)." data-he="Edge Impulse עם ארדואינו ננו 33 BLE Sense מציע את האיזון הטוב ביותר של דיוק, התאמה אישית ועלות (תוכנה חינמית + חומרה ~$30).">Edge Impulse with Arduino Nano 33 BLE Sense offers the best balance of accuracy, customization, and cost (free software + ~$30 hardware).</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Tab -->
+        <div id="demo" class="tab-content">
+            <div class="card">
+                <h2 data-en="Interactive Menorah Demo" data-he="הדגמה אינטראקטיבית של מנורה">Interactive Menorah Demo</h2>
+                <p data-en="Click the button or use voice command to see how the menorah lights up:" data-he="לחץ על הכפתור או השתמש בפקודת קול כדי לראות איך המנורה מדליקה:">Click the button or use voice command to see how the menorah lights up:</p>
+
+                <div class="menorah-visual">
+                    <div class="candle" data-index="0">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="1">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="2">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="3">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle shamash" data-index="4">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="5">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="6">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="7">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                    <div class="candle" data-index="8">
+                        <div class="flame"></div>
+                        <div class="stick"></div>
+                    </div>
+                </div>
+
+                <div class="control-panel">
+                    <button class="btn" onclick="pressButton()" data-en="🔘 Press Button" data-he="🔘 לחץ על כפתור">🔘 Press Button</button>
+                    <button class="btn" onclick="voiceTrigger()" data-en="🎤 Voice Command" data-he="🎤 פקודת קול">🎤 Voice Command</button>
+                    <button class="btn btn-secondary" onclick="resetDemo()" data-en="↺ Reset" data-he="↺ איפוס">↺ Reset</button>
+                </div>
+
+                <div class="card" style="margin-top: 20px;">
+                    <h3 data-en="Current Status" data-he="סטטוס נוכחי">Current Status</h3>
+                    <p><strong data-en="Candles Lit:" data-he="נרות דולקים:">Candles Lit:</strong> <span id="status-count">0</span> / 9</p>
+                    <p><strong data-en="Next Action:" data-he="פעולה הבאה:">Next Action:</strong> <span id="status-action" data-en="Light Shamash (center candle)" data-he="הדלק שמש (נר מרכזי)">Light Shamash (center candle)</span></p>
+                    <p><strong data-en="Last Trigger:" data-he="הפעלה אחרונה:">Last Trigger:</strong> <span id="status-trigger" data-en="None" data-he="אין">None</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let lightCount = 0;
+
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Remove active class from all tab buttons
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab button
+            event.target.classList.add('active');
+        }
+
+        function switchLanguage(lang) {
+            document.documentElement.lang = lang;
+            document.documentElement.dir = (lang === 'he') ? 'rtl' : 'ltr';
+            
+            document.querySelectorAll('[data-en][data-he]').forEach(el => {
+                el.textContent = el.getAttribute('data-' + lang);
+            });
+            
+            // Update status messages
+            updateStatus();
+        }
+
+        function copyCode() {
+            const codeElement = document.getElementById('arduino-code');
+            const textArea = document.createElement('textarea');
+            textArea.value = codeElement.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const btn = event.target;
+            const originalText = btn.getAttribute('data-' + (document.documentElement.lang || 'en')) || btn.textContent;
+            const copiedText = document.documentElement.lang === 'he' ? 'הועתק!' : 'Copied!';
+            btn.textContent = copiedText;
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
+        function copyVoiceCode() {
+            const codeElement = document.getElementById('voice-code');
+            const textArea = document.createElement('textarea');
+            textArea.value = codeElement.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const btn = event.target;
+            const originalText = btn.getAttribute('data-' + (document.documentElement.lang || 'en')) || btn.textContent;
+            const copiedText = document.documentElement.lang === 'he' ? 'הועתק!' : 'Copied!';
+            btn.textContent = copiedText;
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2000);
+        }
+
+        function updateMenorahDisplay() {
+            const flames = document.querySelectorAll('.flame');
+            
+            // Turn off all flames first
+            flames.forEach(flame => flame.classList.remove('lit'));
+
+            if (lightCount === 0) {
+                updateStatus();
+                return;
+            }
+
+            // Light the Shamash (index 4) first
+            flames[4].classList.add('lit');
+
+            // Calculate how many additional candles to light
+            const additionalCandles = lightCount - 1;
+
+            // Light candles from right to left, skipping Shamash
+            let litCount = 0;
+            
+            // Right side (indices 0-3)
+            for (let i = 0; i < 4 && litCount < additionalCandles; i++) {
+                flames[i].classList.add('lit');
+                litCount++;
+            }
+
+            // Left side (indices 5-8)
+            for (let i = 5; i < 9 && litCount < additionalCandles; i++) {
+                flames[i].classList.add('lit');
+                litCount++;
+            }
+
+            updateStatus();
+        }
+
+        function updateStatus() {
+            document.getElementById('status-count').textContent = lightCount;
+            
+            const lang = document.documentElement.lang || 'en';
+            let action = '';
+            
+            if (lang === 'he') {
+                if (lightCount === 0) {
+                    action = 'הדלק שמש (נר מרכזי)';
+                } else if (lightCount < 9) {
+                    action = `הדלק נר #${lightCount + 1}`;
+                } else {
+                    action = 'איפוס - כבה את כל הנרות';
+                }
+            } else {
+                if (lightCount === 0) {
+                    action = 'Light Shamash (center candle)';
+                } else if (lightCount < 9) {
+                    action = `Light candle #${lightCount + 1}`;
+                } else {
+                    action = 'Reset - turn off all candles';
+                }
+            }
+            
+            const statusActionEl = document.getElementById('status-action');
+            // Update the data attribute for the current language
+            statusActionEl.setAttribute('data-' + lang, action);
+            statusActionEl.textContent = action;
+        }
+
+        function pressButton() {
+            lightCount++;
+            
+            if (lightCount > 9) {
+                lightCount = 0;
+            }
+            
+            const lang = document.documentElement.lang || 'en';
+            const triggerText = lang === 'he' ? 'לחיצת כפתור' : 'Button Press';
+            document.getElementById('status-trigger').textContent = triggerText;
+            updateMenorahDisplay();
+        }
+
+        function voiceTrigger() {
+            lightCount++;
+            
+            if (lightCount > 9) {
+                lightCount = 0;
+            }
+            
+            const lang = document.documentElement.lang || 'en';
+            const triggerText = lang === 'he' ? 'פקודת קול' : 'Voice Command';
+            document.getElementById('status-trigger').textContent = triggerText;
+            updateMenorahDisplay();
+        }
+
+        function resetDemo() {
+            lightCount = 0;
+            const lang = document.documentElement.lang || 'en';
+            const triggerText = lang === 'he' ? 'איפוס' : 'Reset';
+            document.getElementById('status-trigger').textContent = triggerText;
+            updateMenorahDisplay();
+        }
+
+        // Initialize on page load
+        updateStatus();
+    </script>
+</body>
+</html>
+
